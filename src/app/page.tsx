@@ -1,103 +1,148 @@
-import Image from "next/image";
+'use client';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { WalletConnectButton } from './WalletConnect';
 
-export default function Home() {
+const PERIODS = ['24h', '7d', '1m', '3m', '6m', '1y', 'all-time'] as const;
+type Period = typeof PERIODS[number];
+
+const VAULT_URLS = {
+  Hyperliquid: 'https://app.hyperliquid.xyz/vaults/0xdfc24b077bc1425ad1dea75bcb6f8158e10df303',
+  Lighter: 'https://app.lighter.xyz/public-pools/281474976710654'
+} as const;
+
+const SUPPORTED_ASSETS = {
+  Hyperliquid: 'USDC',
+  Lighter: 'USDC'
+} as const;
+
+export default function Dashboard() {
+  const [selectedPeriods, setSelectedPeriods] = useState<Period[]>(['24h', '7d', '1m']);
+
+  const { data: volumes } = useQuery({ queryKey: ['volumes'], queryFn: () => fetch('/api/volumes').then(res => res.json()) });
+  const { data: hlYields } = useQuery({ queryKey: ['hlYields'], queryFn: () => fetch('/api/yields').then(res => res.json()) });
+  const { data: lighterYields } = useQuery({ queryKey: ['lighterYields'], queryFn: () => fetch('/api/lighter-yields').then(res => res.json()) });
+
+     interface VolumeData {
+    dex: string;
+    volume: number;
+  }
+
+  interface YieldsData {
+    dex: string;
+    current: number;
+    periods: Record<string, number>;
+    tvl: number;
+  }
+
+  const rows: {
+    dex: string;
+    volume: number;
+    yields: YieldsData | undefined;
+    assets: string;
+    url: string;
+  }[] = [
+    { 
+      dex: 'Hyperliquid', 
+      volume: volumes?.find((v: VolumeData) => v.dex === 'Hyperliquid')?.volume || 0, 
+      yields: hlYields,
+      assets: SUPPORTED_ASSETS.Hyperliquid,
+      url: VAULT_URLS.Hyperliquid
+    },
+    { 
+      dex: 'Lighter', 
+      volume: volumes?.find((v: VolumeData) => v.dex === 'Lighter')?.volume || 0, 
+      yields: lighterYields,
+      assets: SUPPORTED_ASSETS.Lighter,
+      url: VAULT_URLS.Lighter
+    }
+  ];
+
+  const handleFilterChange = (period: Period) => {
+    setSelectedPeriods(prev => 
+      prev.includes(period) 
+        ? prev.filter(p => p !== period) 
+        : [...prev.slice(0, 2), period].slice(0, 3)
+    );
+  };
+
+  const handleInvest = (url: string) => {
+    window.open(url, '_blank');
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="container mx-auto p-4 max-w-4xl">
+      <h1 className="text-3xl font-bold mb-6 text-center">Perp DEX Vault Dashboard</h1>
+      <div className="mb-6 text-center">
+        <WalletConnectButton />
+      </div>
+      
+      <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+        <h2 className="text-xl font-semibold mb-2">Yield Filters (Select up to 3 Periods)</h2>
+        <div className="flex flex-wrap gap-3 justify-center">
+          {PERIODS.map(p => (
+            <label key={p} className="flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                checked={selectedPeriods.includes(p)} 
+                onChange={() => handleFilterChange(p)}
+                className="mr-2"
+              />
+              <span className="capitalize text-sm">{p.replace('-', ' ')}</span>
+            </label>
+          ))}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
+
+      <div className="overflow-x-auto shadow-lg rounded-lg">
+        <table className="w-full bg-white border-collapse border border-gray-300">
+          <thead className="bg-gray-100 sticky top-0">
+            <tr>
+              <th className="border px-4 py-3 text-left font-semibold">DEX</th>
+              <th className="border px-4 py-3 text-left font-semibold">24h Volume</th>
+              <th className="border px-4 py-3 text-left font-semibold">Current Yield (%)</th>
+              <th className="border px-4 py-3 text-left font-semibold">Yields (%)</th>
+              <th className="border px-4 py-3 text-left font-semibold">Assets</th>
+              <th className="border px-4 py-3 text-left font-semibold">Invest</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, index) => (
+              <tr key={row.dex} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                <td className="border px-4 py-3 font-medium">{row.dex}</td>
+                <td className="border px-4 py-3">${(row.volume / 1e9).toFixed(1)}B</td>
+                <td className="border px-4 py-3 text-green-600 font-semibold">{row.yields?.current?.toFixed(2) || 'N/A'}</td>
+                <td className="border px-4 py-3">
+                  {selectedPeriods.length > 0 ? (
+                    <div className="space-y-1">
+                      {selectedPeriods.map(p => (
+                        <div key={p} className="text-sm">
+                          {p.replace('-', ' ')}: {row.yields?.periods?.[p]?.toFixed(2) || 'N/A'}%
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-gray-500 text-sm">Select periods to view</span>
+                  )}
+                </td>
+                <td className="border px-4 py-3 text-sm font-mono">{row.assets}</td>
+                <td className="border px-4 py-3">
+                  <button
+                    onClick={() => handleInvest(row.url)}
+                    className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-md font-semibold shadow-md transition-colors w-full sm:w-auto"
+                  >
+                    Invest
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="mt-6 text-center text-sm text-gray-600">
+        <p>Click &quot;Invest&quot; to be redirected to the official vault/pool site for secure deposits.</p>
+      </div>
     </div>
   );
 }
