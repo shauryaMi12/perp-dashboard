@@ -30,8 +30,15 @@ export async function GET() {
     const current = (data.apr || 0) * 100;  // % APR
 
     return NextResponse.json({ dex: 'Hyperliquid', current, periods, tvl: data.tvl || 0 });
-  } catch  {
-    return NextResponse.json({ error: 'Failed to fetch Hyperliquid yields' }, { status: 500 });
+  } catch (err) {
+    console.error('Yields API error:', err);
+    // Fallback data to prevent blank
+    return NextResponse.json({ 
+      dex: 'Hyperliquid', 
+      current: 0, 
+      periods: { '24h': 0, '7d': 0, '1m': 0, '3m': 0, '6m': 0, '1y': 0, 'all-time': 0 }, 
+      tvl: 0 
+    });
   }
 }
 
