@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { WalletConnectButton } from './WalletConnect';
 
 function ErrorBoundary({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;  // Simple wrapper; add <div>Error—retry</div> if needed
+  return <>{children}</>;
 }
 
 const PERIODS = ['24h', '7d', '1m', '3m', '6m', '1y', 'all-time'] as const;
@@ -23,9 +23,21 @@ const SUPPORTED_ASSETS = {
 export default function Dashboard() {
   const [selectedPeriods, setSelectedPeriods] = useState<Period[]>(['24h', '7d', '1m']);
 
-  const { data: volumes } = useQuery({ queryKey: ['volumes'], queryFn: () => fetch('/api/volumes').then(res => res.json()) });
-  const { data: hlYields } = useQuery({ queryKey: ['hlYields'], queryFn: () => fetch('/api/yields').then(res => res.json()) });
-  const { data: lighterYields } = useQuery({ queryKey: ['lighterYields'], queryFn: () => fetch('/api/lighter-yields').then(res => res.json()) });
+  const { data: volumes, isLoading: volumesLoading, error: volumesError } = useQuery({ 
+    queryKey: ['volumes'], 
+    queryFn: () => fetch('/api/volumes').then(res => res.json()) 
+  });
+  const { data: hlYields, isLoading: hlLoading, error: hlError } = useQuery({ 
+    queryKey: ['hlYields'], 
+    queryFn: () => fetch('/api/yields').then(res => res.json()) 
+  });
+  const { data: lighterYields, isLoading: lighterLoading, error: lighterError } = useQuery({ 
+    queryKey: ['lighterYields'], 
+    queryFn: () => fetch('/api/lighter-yields').then(res => res.json()) 
+  });
+
+  const isLoading = volumesLoading || hlLoading || lighterLoading;
+  const hasError = volumesError || hlError || lighterError;
 
   interface VolumeData {
     dex: string;
@@ -73,6 +85,14 @@ export default function Dashboard() {
   const handleInvest = (url: string) => {
     window.open(url, '_blank');
   };
+
+  if (isLoading) {
+    return <div className="container mx-auto p-4 text-center">Loading dashboard...</div>;
+  }
+
+  if (hasError) {
+    return <div className="container mx-auto p-4 text-center text-red-500">Error loading data—retry or check console. <button onClick={() => window.location.reload()} className="ml-2 underline">Retry</button></div>;
+  }
 
   return (
     <ErrorBoundary>
