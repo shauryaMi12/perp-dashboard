@@ -3,30 +3,29 @@ import { WagmiProvider, createConfig, http } from 'wagmi';
 import { arbitrum } from 'wagmi/chains';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-const HYPERLIQUID_RPC = 'https://api.hyperliquid.xyz/rpc';  // Custom RPC
+const HYPERLIQUID_RPC = 'https://rpc.hyperliquid.xyz';  // Valid HyperEVM mainnet RPC
 
-const HYPERLIQUID_TESTNET = {
-  id: 31337,
-  name: 'Hyperliquid Testnet',
+const HYPERLIQUID_MAINNET = {
+  id: 999,
+  name: 'Hyperliquid Mainnet',
   nativeCurrency: {
-    decimals: 6,
-    name: 'USDC',  // Placeholder for testnet
+    decimals: 18,
+    name: 'USDC',
     symbol: 'USDC',
   },
   rpcUrls: {
     default: { http: [HYPERLIQUID_RPC] },
   },
   blockExplorers: {
-    default: { name: 'Hyperliquid Explorer', url: 'https://explorer.hyperliquid.xyz' },  // Placeholder
+    default: { name: 'Hyperliquid Explorer', url: 'https://explorer.hyperliquid.xyz' },
   },
-  testnet: true,
 } as const;
 
 const config = createConfig({
-  chains: [arbitrum, HYPERLIQUID_TESTNET],
+  chains: [arbitrum, HYPERLIQUID_MAINNET],
   transports: {
     [arbitrum.id]: http(),
-    [HYPERLIQUID_TESTNET.id]: http(),  // Fixed: Added [] around key
+    [HYPERLIQUID_MAINNET.id]: http(),  // Key is number 999 via .id
   },
 });
 
