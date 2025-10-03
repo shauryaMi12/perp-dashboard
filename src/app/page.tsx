@@ -126,11 +126,11 @@ export default function Dashboard() {
           </div>
 
           <div className="overflow-x-auto">
-            <table><thead><tr><th>DEX</th><th>24h Volume</th><th>Current Yield (%)</th><th>Selected Yields (%)</th><th>Assets</th><th>Invest</th></tr></thead><tbody>{rows.map((row, index) => (<tr key={row.dex}><td className="font-semibold text-white">{row.dex}</td><td>${(row.volume / 1e9).toFixed(1)}B</td><td className="yield-cell">{row.yields?.current?.toFixed(2) || 'N/A'}</td><td>{selectedPeriods.length > 0 ? (<div className="space-y-1">{selectedPeriods.map(p => (<div key={p} className="text-sm yield-cell">{p.replace('-', ' ')}: {row.yields?.periods?.[p]?.toFixed(2) || 'N/A'}%</div>))}</div>) : (<span className="text-gray-500">Select periods</span>)}</td><td className="font-mono text-sm">{row.assets}</td><td><button onClick={() => handleInvest(row.url)}>Invest</button></td></tr>))}</tbody></table>
+            <table><thead><tr><th>DEX</th><th>24h Volume</th><th>Current Yield (%)</th><th>Selected Yields (%)</th><th>Assets</th><th>Invest</th></tr></thead><tbody>{rows.map((row) => (<tr key={row.dex}><td className="font-semibold text-white">{row.dex}</td><td>${(row.volume / 1e9).toFixed(1)}B</td><td className="yield-cell">{row.yields?.current?.toFixed(2) || 'N/A'}</td><td>{selectedPeriods.length > 0 ? (<div className="space-y-1">{selectedPeriods.map(p => (<div key={p} className="text-sm yield-cell">{p.replace('-', ' ')}: {row.yields?.periods?.[p]?.toFixed(2) || 'N/A'}%</div>))}</div>) : (<span className="text-gray-500">Select periods</span>)}</td><td className="font-mono text-sm">{row.assets}</td><td><button onClick={() => handleInvest(row.url)}>Invest</button></td></tr>))}</tbody></table>
           </div>
 
           <div className="footer-note">
-            <p>Click "Invest" to redirect to official vault for secure deposits in major perp trading apps.</p>
+            <p>Click &quot;Invest&quot; to redirect to official vault for secure deposits in major perp trading apps.</p>
           </div>
         </div>
       </div>
