@@ -85,51 +85,119 @@ export default function Dashboard() {
     window.open(url, '_blank');
   };
 
+  const theme = {
+    bg: '#000000',
+    text: '#f97316',
+    muted: '#a1a1aa',
+    headerBg: '#111111',
+    rowAlt: '#0a0a0a',
+    hover: '#1a1a1a',
+    border: '#333333',
+    buttonBg: '#f97316',
+    buttonHover: '#ea580c',
+    shadow: '0 10px 25px rgba(0, 0, 0, 0.5)'
+  };
+
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-center">Loading perp vault yields...</div>
+      <div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: theme.bg, color: theme.text, fontFamily: 'Inter, sans-serif', padding: '2rem' }}>
+        <div style={{ textAlign: 'center' }}>Loading perp vault yields...</div>
       </div>
     );
   }
 
   if (hasError) {
     return (
-      <div className="container mx-auto p-4 text-center">
-        <div className="text-red-400">Error loading vault data—retry or check console.</div>
-        <button onClick={() => window.location.reload()} className="mt-2 underline">Retry</button>
+      <div style={{ backgroundColor: theme.bg, color: theme.text, fontFamily: 'Inter, sans-serif', padding: '2rem', textAlign: 'center' as const }}>
+        <div style={{ color: '#ef4444' }}>Error loading vault data—retry or check console.</div>
+        <button onClick={() => window.location.reload()} style={{ marginTop: '0.5rem', textDecoration: 'underline', color: theme.text }}>Retry</button>
       </div>
     );
   }
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <div className="container mx-auto max-w-6xl">
-          <h1 className="text-4xl font-bold mb-8 text-center py-8">Perp DEX Vault Dashboard</h1>
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1rem', backgroundColor: theme.bg, color: theme.text, fontFamily: 'Inter, sans-serif' }}>
+        <div style={{ maxWidth: '1200px', width: '100%' }}>
+          <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '2rem', textAlign: 'center' as const, padding: '2rem 0', color: theme.text }}>Perp DEX Vault Dashboard</h1>
 
-          <div className="filter-panel mb-8">
-            <h2 className="text-xl font-semibold mb-4">Yield Filters (Select up to 3 Periods)</h2>
-            <div className="flex flex-wrap gap-4 justify-center">
+          <div style={{ backgroundColor: theme.headerBg, border: `1px solid ${theme.border}`, borderRadius: '0.75rem', padding: '1.5rem', marginBottom: '2rem', textAlign: 'center' as const, color: theme.text }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '1rem' }}>Yield Filters (Select up to 3 Periods)</h2>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'center' }}>
               {PERIODS.map(p => (
-                <label key={p} className="flex items-center cursor-pointer text-sm">
+                <label key={p} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: '0.875rem', color: theme.text }}>
                   <input
                     type="checkbox"
                     checked={selectedPeriods.includes(p)}
                     onChange={() => handleFilterChange(p)}
-                    className="mr-2 w-4 h-4 text-orange-500"
+                    style={{ marginRight: '0.5rem', width: '1rem', height: '1rem', accentColor: theme.text }}
                   />
-                  <span className="capitalize">{p.replace('-', ' ')}</span>
+                  <span style={{ textTransform: 'capitalize' as const }}>{p.replace('-', ' ')}</span>
                 </label>
               ))}
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table><thead><tr><th>DEX</th><th>24h Volume</th><th>Current Yield (%)</th><th>Selected Yields (%)</th><th>Assets</th><th>Invest</th></tr></thead><tbody>{rows.map((row) => (<tr key={row.dex}><td className="font-semibold text-white">{row.dex}</td><td>${(row.volume / 1e9).toFixed(1)}B</td><td className="yield-cell">{row.yields?.current?.toFixed(2) || 'N/A'}</td><td>{selectedPeriods.length > 0 ? (<div className="space-y-1">{selectedPeriods.map(p => (<div key={p} className="text-sm yield-cell">{p.replace('-', ' ')}: {row.yields?.periods?.[p]?.toFixed(2) || 'N/A'}%</div>))}</div>) : (<span className="text-gray-500">Select periods</span>)}</td><td className="font-mono text-sm">{row.assets}</td><td><button onClick={() => handleInvest(row.url)}>Invest</button></td></tr>))}</tbody></table>
+          <div style={{ overflowX: 'auto', boxShadow: theme.shadow, borderRadius: '0.75rem', border: `1px solid ${theme.border}` }}>
+            <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, backgroundColor: theme.bg, borderRadius: '0.75rem', overflow: 'hidden' }}>
+              <thead style={{ backgroundColor: theme.headerBg, position: 'sticky', top: 0, zIndex: 10 as number }}>
+                <tr>
+                  <th style={{ padding: '1rem 1.5rem', textAlign: 'left' as const, fontWeight: 700, fontSize: '0.875rem', textTransform: 'uppercase' as const, letterSpacing: '0.05em', borderBottom: `1px solid ${theme.border}`, color: theme.text }}>DEX</th>
+                  <th style={{ padding: '1rem 1.5rem', textAlign: 'left' as const, fontWeight: 700, fontSize: '0.875rem', textTransform: 'uppercase' as const, letterSpacing: '0.05em', borderBottom: `1px solid ${theme.border}`, color: theme.text }}>24h Volume</th>
+                  <th style={{ padding: '1rem 1.5rem', textAlign: 'left' as const, fontWeight: 700, fontSize: '0.875rem', textTransform: 'uppercase' as const, letterSpacing: '0.05em', borderBottom: `1px solid ${theme.border}`, color: theme.text }}>Current Yield (%)</th>
+                  <th style={{ padding: '1rem 1.5rem', textAlign: 'left' as const, fontWeight: 700, fontSize: '0.875rem', textTransform: 'uppercase' as const, letterSpacing: '0.05em', borderBottom: `1px solid ${theme.border}`, color: theme.text }}>Selected Yields (%)</th>
+                  <th style={{ padding: '1rem 1.5rem', textAlign: 'left' as const, fontWeight: 700, fontSize: '0.875rem', textTransform: 'uppercase' as const, letterSpacing: '0.05em', borderBottom: `1px solid ${theme.border}`, color: theme.text }}>Assets</th>
+                  <th style={{ padding: '1rem 1.5rem', textAlign: 'left' as const, fontWeight: 700, fontSize: '0.875rem', textTransform: 'uppercase' as const, letterSpacing: '0.05em', borderBottom: `1px solid ${theme.border}`, color: theme.text }}>Invest</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row) => (
+                  <tr key={row.dex} style={{ transition: 'background 0.2s ease' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.hover} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.rowAlt}>
+                    <td style={{ padding: '1rem 1.5rem', borderBottom: `1px solid ${theme.border}`, verticalAlign: 'middle', fontWeight: 600, color: '#ffffff' }}>{row.dex}</td>
+                    <td style={{ padding: '1rem 1.5rem', borderBottom: `1px solid ${theme.border}`, verticalAlign: 'middle', color: theme.muted }}>${(row.volume / 1e9).toFixed(1)}B</td>
+                    <td style={{ padding: '1rem 1.5rem', borderBottom: `1px solid ${theme.border}`, verticalAlign: 'middle', color: theme.text, fontWeight: 600, fontSize: '1rem' }}>{row.yields?.current?.toFixed(2) || 'N/A'}</td>
+                    <td style={{ padding: '1rem 1.5rem', borderBottom: `1px solid ${theme.border}`, verticalAlign: 'middle' }}>
+                      {selectedPeriods.length > 0 ? (
+                        <div style={{ lineHeight: 1.5 }}>
+                          {selectedPeriods.map(p => (
+                            <div key={p} style={{ fontSize: '0.875rem', color: theme.text, fontWeight: 600 }}>
+                              {p.replace('-', ' ')}: {row.yields?.periods?.[p]?.toFixed(2) || 'N/A'}%
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>Select periods</span>
+                      )}
+                    </td>
+                    <td style={{ padding: '1rem 1.5rem', borderBottom: `1px solid ${theme.border}`, verticalAlign: 'middle', fontSize: '0.875rem', fontFamily: 'monospace', color: theme.muted }}>{row.assets}</td>
+                    <td style={{ padding: '1rem 1.5rem', borderBottom: `1px solid ${theme.border}`, verticalAlign: 'middle' }}>
+                      <button
+                        onClick={() => handleInvest(row.url)}
+                        style={{
+                          backgroundColor: theme.buttonBg,
+                          color: '#000000',
+                          border: 'none',
+                          padding: '0.75rem 1.5rem',
+                          borderRadius: '0.5rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          transition: 'background 0.2s ease',
+                          width: '100%',
+                          minWidth: '120px'
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = theme.buttonHover}
+                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = theme.buttonBg}
+                      >
+                        Invest
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
 
-          <div className="footer-note">
+          <div style={{ color: theme.muted, fontSize: '0.875rem', textAlign: 'center' as const, marginTop: '2rem', padding: '1rem', borderTop: `1px solid ${theme.border}` }}>
             <p>Click &quot;Invest&quot; to redirect to official vault for secure deposits in major perp trading apps.</p>
           </div>
         </div>
