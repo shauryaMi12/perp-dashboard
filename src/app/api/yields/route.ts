@@ -34,7 +34,7 @@ export async function GET() {
       }),
     });
     const data: ApiResponse = await res.json();
-    if (!res.ok) throw new Error(data.msg || 'API error');
+    if (!res.ok) throw new Error((data as any).msg || 'API error');
 
     // Derive TVL from latest allTime account value
     const allTimePortfolio = data.portfolio?.find((p: PortfolioItem) => p[0] === 'allTime')?.[1];
