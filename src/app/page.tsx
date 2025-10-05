@@ -1,13 +1,9 @@
 'use client';
-import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 function ErrorBoundary({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
-
-const PERIODS = ['24h', '7d', '1m', '3m', '6m', '1y', 'all-time'] as const;
-type Period = typeof PERIODS[number];
 
 const VAULT_URLS = {
   Hyperliquid: 'https://app.hyperliquid.xyz/vaults/0xdfc24b077bc1425ad1dea75bcb6f8158e10df303',
@@ -69,88 +65,88 @@ export default function Dashboard() {
 
   const theme = {
     bg: '#000000',
-    text: '#f97316',
-    muted: '#a1a1aa',
-    headerBg: '#111111',
-    rowAlt: '#0a0a0a',
-    hover: '#1a1a1a',
-    buttonBg: '#f97316',
-    buttonHover: '#ea580c',
-    shadow: '0 4px 12px rgba(0, 0, 0, 0.7)'
+    text: '#00ff41', // Neon green like infographics
+    muted: '#00cc33',
+    headerBg: '#0a0a0a',
+    rowAlt: '#000000',
+    hover: '#001a00',
+    shadow: '0 2px 8px rgba(0, 255, 65, 0.3)', // Green glow
+    boxShadow: 'inset 0 0 5px rgba(0, 255, 65, 0.2)'
   };
 
-  const cockpitFont = 'Courier New, monospace';
+  const hudFont = 'Courier New, monospace'; // Pixel-retro like maps
 
   if (isLoading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: theme.bg, color: theme.text, fontFamily: cockpitFont, padding: '1rem', fontSize: '0.75rem' }}>
-        Loading yields...
+      <div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: theme.bg, color: theme.text, fontFamily: hudFont, padding: '1rem', fontSize: '0.75rem', textTransform: 'uppercase' as const }}>
+        loading yields...
       </div>
     );
   }
 
   if (hasError) {
     return (
-      <div style={{ backgroundColor: theme.bg, color: theme.text, fontFamily: cockpitFont, padding: '1rem', textAlign: 'center' as const, fontSize: '0.75rem' }}>
-        <div style={{ color: '#ef4444' }}>Error—retry.</div>
-        <button onClick={() => window.location.reload()} style={{ textDecoration: 'underline', color: theme.text }}>Retry</button>
+      <div style={{ backgroundColor: theme.bg, color: theme.text, fontFamily: hudFont, padding: '1rem', textAlign: 'center' as const, fontSize: '0.75rem', textTransform: 'uppercase' as const }}>
+        <div style={{ color: '#ff4444' }}>error—retry.</div>
+        <button onClick={() => window.location.reload()} style={{ textDecoration: 'underline', color: theme.text }}>retry</button>
       </div>
     );
   }
 
   return (
     <ErrorBoundary>
-      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0.5rem', backgroundColor: theme.bg, color: theme.text, fontFamily: cockpitFont, fontSize: '0.75rem' }}>
-        <div style={{ maxWidth: '800px', width: '100%' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0.5rem', backgroundColor: theme.bg, color: theme.text, fontFamily: hudFont, fontSize: '0.7rem', textTransform: 'uppercase' as const }}>
+        <div style={{ maxWidth: '900px', width: '100%' }}>
           <div style={{ overflowX: 'auto', boxShadow: theme.shadow, borderRadius: '0.25rem' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: theme.bg, borderRadius: '0.25rem', overflow: 'hidden', color: theme.text }}>
-              <thead style={{ backgroundColor: theme.headerBg }}>
+            <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, backgroundColor: theme.bg, borderRadius: '0.25rem', overflow: 'hidden' }}>
+              <thead style={{ backgroundColor: theme.headerBg, boxShadow: theme.boxShadow }}>
                 <tr>
-                  <th colSpan={1} rowSpan={2} style={{ padding: '0.25rem 0.5rem', textAlign: 'left' as const, fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase' as const, color: theme.text }}>DEX ↗</th> {/* Inline header hint */}
-                  <th colSpan={1} rowSpan={2} style={{ padding: '0.25rem 0.5rem', textAlign: 'left' as const, fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase' as const, color: theme.text }}>24h Vol</th>
-                  <th colSpan={6} style={{ padding: '0.25rem 0.5rem', textAlign: 'center' as const, fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase' as const, color: theme.text }}>Yield</th>
+                  <th colSpan={1} rowSpan={2} style={{ padding: '0.25rem 0.5rem', textAlign: 'left' as const, fontWeight: 700, fontSize: '0.7rem', color: theme.text }}>dex ↗</th>
+                  <th colSpan={1} rowSpan={2} style={{ padding: '0.25rem 0.5rem', textAlign: 'left' as const, fontWeight: 700, fontSize: '0.7rem', color: theme.text }}>24h vol</th>
+                  <th colSpan={6} style={{ padding: '0.25rem 0.5rem', textAlign: 'center' as const, fontWeight: 700, fontSize: '0.7rem', color: theme.text }}>yield</th>
                 </tr>
                 <tr>
-                  <th style={{ padding: '0.25rem 0.5rem', textAlign: 'center' as const, fontWeight: 700, fontSize: '0.625rem', color: theme.text }}>24h</th>
-                  <th style={{ padding: '0.25rem 0.5rem', textAlign: 'center' as const, fontWeight: 700, fontSize: '0.625rem', color: theme.text }}>7d MA</th>
-                  <th style={{ padding: '0.25rem 0.5rem', textAlign: 'center' as const, fontWeight: 700, fontSize: '0.625rem', color: theme.text }}>1m MA</th>
-                  <th style={{ padding: '0.25rem 0.5rem', textAlign: 'center' as const, fontWeight: 700, fontSize: '0.625rem', color: theme.text }}>3m MA</th>
-                  <th style={{ padding: '0.25rem 0.5rem', textAlign: 'center' as const, fontWeight: 700, fontSize: '0.625rem', color: theme.text }}>6m MA</th>
-                  <th style={{ padding: '0.25rem 0.5rem', textAlign: 'center' as const, fontWeight: 700, fontSize: '0.625rem', color: theme.text }}>1y MA</th>
+                  <th style={{ padding: '0.25rem 0.5rem', textAlign: 'center' as const, fontWeight: 700, fontSize: '0.6rem', color: theme.text }}>24h</th>
+                  <th style={{ padding: '0.25rem 0.5rem', textAlign: 'center' as const, fontWeight: 700, fontSize: '0.6rem', color: theme.text }}>7d ma</th>
+                  <th style={{ padding: '0.25rem 0.5rem', textAlign: 'center' as const, fontWeight: 700, fontSize: '0.6rem', color: theme.text }}>1m ma</th>
+                  <th style={{ padding: '0.25rem 0.5rem', textAlign: 'center' as const, fontWeight: 700, fontSize: '0.6rem', color: theme.text }}>3m ma</th>
+                  <th style={{ padding: '0.25rem 0.5rem', textAlign: 'center' as const, fontWeight: 700, fontSize: '0.6rem', color: theme.text }}>6m ma</th>
+                  <th style={{ padding: '0.25rem 0.5rem', textAlign: 'center' as const, fontWeight: 700, fontSize: '0.6rem', color: theme.text }}>1y ma</th>
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row) => (
-                  <tr key={row.dex} style={{ transition: 'background 0.2s ease' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.hover} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.rowAlt}>
-                    <td style={{ padding: '0.25rem 0.5rem', verticalAlign: 'middle', fontWeight: 600, color: theme.text, whiteSpace: 'nowrap' as const }}>
+                {rows.map((row, i) => (
+                  <tr key={row.dex} style={{ transition: 'background 0.2s ease', backgroundColor: i % 2 === 0 ? theme.bg : theme.rowAlt }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.hover} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = i % 2 === 0 ? theme.bg : theme.rowAlt}>
+                    <td style={{ padding: '0.25rem 0.5rem', verticalAlign: 'middle', fontWeight: 700, color: theme.text, whiteSpace: 'nowrap' as const, backgroundColor: theme.headerBg, boxShadow: theme.boxShadow }}>
                       {row.dex}
                       <button
                         onClick={() => handleArrowClick(row.url)}
                         style={{
-                          backgroundColor: 'transparent',
-                          color: theme.text,
+                          backgroundColor: theme.text,
+                          color: theme.bg,
                           border: 'none',
-                          width: '1rem',
-                          height: '1rem',
-                          fontSize: '0.75rem',
+                          width: '0.8rem',
+                          height: '0.8rem',
+                          fontSize: '0.6rem',
                           cursor: 'pointer',
                           display: 'inline-flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                           marginLeft: '0.25rem',
-                          verticalAlign: 'middle'
+                          borderRadius: '0.125rem',
+                          boxShadow: theme.shadow
                         }}
                       >
                         ↗
                       </button>
                     </td>
-                    <td style={{ padding: '0.25rem 0.5rem', verticalAlign: 'middle', color: theme.text }}>${(row.volume / 1e9).toFixed(1)}B</td>
-                    <td style={{ padding: '0.25rem 0.5rem', verticalAlign: 'middle', color: theme.text, fontWeight: 600, fontSize: '0.75rem' }}>{row.yields?.periods?.['24h']?.toFixed(2) || 'N/A'}</td> {/* 24h Yield fixed */}
-                    <td style={{ padding: '0.25rem 0.5rem', verticalAlign: 'middle', color: theme.text, fontWeight: 600, fontSize: '0.75rem' }}>{row.yields?.periods?.['7d']?.toFixed(2) || 'N/A'}</td>
-                    <td style={{ padding: '0.25rem 0.5rem', verticalAlign: 'middle', color: theme.text, fontWeight: 600, fontSize: '0.75rem' }}>{row.yields?.periods?.['1m']?.toFixed(2) || 'N/A'}</td>
-                    <td style={{ padding: '0.25rem 0.5rem', verticalAlign: 'middle', color: theme.text, fontWeight: 600, fontSize: '0.75rem' }}>{row.yields?.periods?.['3m']?.toFixed(2) || 'N/A'}</td>
-                    <td style={{ padding: '0.25rem 0.5rem', verticalAlign: 'middle', color: theme.text, fontWeight: 600, fontSize: '0.75rem' }}>{row.yields?.periods?.['6m']?.toFixed(2) || 'N/A'}</td>
-                    <td style={{ padding: '0.25rem 0.5rem', verticalAlign: 'middle', color: theme.text, fontWeight: 600, fontSize: '0.75rem' }}>{row.yields?.periods?.['1y']?.toFixed(2) || 'N/A'}</td>
+                    <td style={{ padding: '0.25rem 0.5rem', verticalAlign: 'middle', color: theme.muted, backgroundColor: theme.headerBg, boxShadow: theme.boxShadow }}>${(row.volume / 1e9).toFixed(1)}b</td>
+                    <td style={{ padding: '0.25rem 0.5rem', verticalAlign: 'middle', color: theme.text, fontWeight: 600, fontSize: '0.7rem', backgroundColor: theme.headerBg, boxShadow: theme.boxShadow }}>{row.yields?.periods?.['24h']?.toFixed(2) || 'n/a'}</td>
+                    <td style={{ padding: '0.25rem 0.5rem', verticalAlign: 'middle', color: theme.text, fontWeight: 600, fontSize: '0.7rem', backgroundColor: theme.headerBg, boxShadow: theme.boxShadow }}>{row.yields?.periods?.['7d']?.toFixed(2) || 'n/a'}</td>
+                    <td style={{ padding: '0.25rem 0.5rem', verticalAlign: 'middle', color: theme.text, fontWeight: 600, fontSize: '0.7rem', backgroundColor: theme.headerBg, boxShadow: theme.boxShadow }}>{row.yields?.periods?.['1m']?.toFixed(2) || 'n/a'}</td>
+                    <td style={{ padding: '0.25rem 0.5rem', verticalAlign: 'middle', color: theme.text, fontWeight: 600, fontSize: '0.7rem', backgroundColor: theme.headerBg, boxShadow: theme.boxShadow }}>{row.yields?.periods?.['3m']?.toFixed(2) || 'n/a'}</td>
+                    <td style={{ padding: '0.25rem 0.5rem', verticalAlign: 'middle', color: theme.text, fontWeight: 600, fontSize: '0.7rem', backgroundColor: theme.headerBg, boxShadow: theme.boxShadow }}>{row.yields?.periods?.['6m']?.toFixed(2) || 'n/a'}</td>
+                    <td style={{ padding: '0.25rem 0.5rem', verticalAlign: 'middle', color: theme.text, fontWeight: 600, fontSize: '0.7rem', backgroundColor: theme.headerBg, boxShadow: theme.boxShadow }}>{row.yields?.periods?.['1y']?.toFixed(2) || 'n/a'}</td>
                   </tr>
                 ))}
               </tbody>
