@@ -2,6 +2,26 @@ import { NextResponse } from 'next/server';
 
 const VAULT_ADDR = '0xdfc24b077bc1425ad1dea75bcb6f8158e10df303';
 
+interface HistoryEntry {
+  0: number; // timestamp
+  1: string; // value (PnL or account)
+}
+
+interface PortfolioData {
+  pnlHistory: HistoryEntry[];
+  accountValueHistory: HistoryEntry[];
+}
+
+interface PortfolioItem {
+  0: string; // period key (e.g., 'day')
+  1: PortfolioData;
+}
+
+interface ApiResponse {
+  portfolio: PortfolioItem[];
+  apr: number;
+}
+
 export async function GET() {
   try {
     const res = await fetch('https://api.hyperliquid.xyz/info', {
@@ -13,11 +33,11 @@ export async function GET() {
         user: '0x0000000000000000000000000000000000000000'  // Dummy for public data
       }),
     });
-    const data = await res.json();
+    const data: ApiResponse = await res.json();
     if (!res.ok) throw new Error(data.msg || 'API error');
 
     // Derive TVL from latest allTime account value
-    const allTimePortfolio = data.portfolio?.find((p: [string, any]) => p[0] === 'allTime')?.[1];
+    const allTimePortfolio = data.portfolio?.find((p: PortfolioItem) => p[0] === 'allTime')?.[1];
     const latestAccountValue = allTimePortfolio?.accountValueHistory?.slice(-1)[0]?.[1] || '0';
     const tvl = parseFloat(latestAccountValue) || 0;
 
@@ -25,13 +45,13 @@ export async function GET() {
 
     // Calc raw yields, then annualize
     const periods = {
-      '24h': annualizeYield(calculateRawYield(data.portfolio?.find((p: [string, any]) => p[0] === 'day')?.[1] || {}, currentAprPct, 1), 1),
-      '7d': annualizeYield(calculateRawYield(data.portfolio?.find((p: [string, any]) => p[0] === 'week')?.[1] || {}, currentAprPct, 7), 7),
-      '1m': annualizeYield(calculateRawYield(data.portfolio?.find((p: [string, any]) => p[0] === 'month')?.[1] || {}, currentAprPct, 30), 30),
-      '3m': annualizeYield(calculateRawYield(data.portfolio?.find((p: [string, any]) => p[0] === 'threeMonth')?.[1] || {}, currentAprPct, 90), 90),
-      '6m': annualizeYield(calculateRawYield(data.portfolio?.find((p: [string, any]) => p[0] === 'sixMonth')?.[1] || {}, currentAprPct, 182), 182),
-      '1y': annualizeYield(calculateRawYield(data.portfolio?.find((p: [string, any]) => p[0] === 'year')?.[1] || {}, currentAprPct, 365), 365),
-      'all-time': annualizeYield(calculateRawYield(data.portfolio?.find((p: [string, any]) => p[0] === 'allTime')?.[1] || {}, currentAprPct, 365), 365),  // Treat all-time as annual equiv
+      '24h': annualizeYield(calculateRawYield(data.portfolio?.find((p: PortfolioItem) => p[0] === 'day')?.[1] || {} as PortfolioData, currentAprPct, 1), 1),
+      '7d': annualizeYield(calculateRawYield(data.portfolio?.find((p: PortfolioItem) => p[0] === 'week')?.[1] || {} as PortfolioData, currentAprPct, 7), 7),
+      '1m': annualizeYield(calculateRawYield(data.portfolio?.find((p: PortfolioItem) => p[0] === 'month')?.[1] || {} as PortfolioData, currentAprPct, 30), 30),
+      '3m': annualizeYield(calculateRawYield(data.portfolio?.find((p: PortfolioItem) => p[0] === 'threeMonth')?.[1] || {} as PortfolioData, currentAprPct, 90), 90),
+      '6m': annualizeYield(calculateRawYield(data.portfolio?.find((p: PortfolioItem) => p[0] === 'sixMonth')?.[1] || {} as PortfolioData, currentAprPct, 182), 182),
+      '1y': annualizeYield(calculateRawYield(data.portfolio?.find((p: PortfolioItem) => p[0] === 'year')?.[1] || {} as PortfolioData, currentAprPct, 365), 365),
+      'all-time': annualizeYield(calculateRawYield(data.portfolio?.find((p: PortfolioItem) => p[0] === 'allTime')?.[1] || {} as PortfolioData, currentAprPct, 365), 365),  // Treat all-time as annual equiv
     };
 
     return NextResponse.json({ dex: 'Hyperliquid', current: currentAprPct, periods, tvl });
@@ -58,7 +78,7 @@ export async function GET() {
 }
 
 // Raw yield % for period (PnL / value * 100)
-function calculateRawYield(portfolioPeriod: any, currentAprPct: number, daysInPeriod: number): number {
+function calculateRawYield(portfolioPeriod: PortfolioData, currentAprPct: number, daysInPeriod: number): number {
   const pnlHistory = portfolioPeriod.pnlHistory || [];
   const valueHistory = portfolioPeriod.accountValueHistory || [];
   if (pnlHistory.length === 0 || valueHistory.length === 0) {
